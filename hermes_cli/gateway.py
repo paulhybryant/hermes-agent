@@ -4782,6 +4782,46 @@ _PLATFORMS = [
             },
         ],
     },
+    {
+        "key": "synology_chat",
+        "label": "Synology Chat",
+        "emoji": "💬",
+        "token_var": "SYNOLOGY_CHAT_BOT_TOKEN",
+        "setup_instructions": [
+            "1. Open Synology Chat, click your profile photo -> Integration -> Bots",
+            "2. Click Create to create a bot",
+            "3. Copy the outgoing token (which will be SYNOLOGY_CHAT_BOT_TOKEN)",
+            "4. Configure the bot's Outgoing URL to point to your Hermes gateway endpoint",
+            "5. To restrict access, get your user ID from Synology Chat and set it in SYNOLOGY_CHAT_ALLOWED_USERS"
+        ],
+        "vars": [
+            {
+                "name": "SYNOLOGY_CHAT_BOT_TOKEN",
+                "prompt": "Bot outgoing token",
+                "password": True,
+                "help": "Paste the token from the Synology Chat bot setup (step 3 above).",
+            },
+            {
+                "name": "SYNOLOGY_CHAT_API_URL",
+                "prompt": "Synology Chat API base URL (e.g. https://your-nas:5001)",
+                "password": False,
+                "help": "Base URL of your Synology NAS, including protocol and port.",
+            },
+            {
+                "name": "SYNOLOGY_CHAT_ALLOWED_USERS",
+                "prompt": "Allowed user IDs (comma-separated)",
+                "password": False,
+                "is_allowlist": True,
+                "help": "Optional: Synology Chat user IDs allowed to use this bot.",
+            },
+            {
+                "name": "SYNOLOGY_CHAT_HOME_CHANNEL",
+                "prompt": "Home channel or DM target (e.g. channel:123 or dm:5)",
+                "password": False,
+                "help": "Optional default channel or user to receive cron messages.",
+            },
+        ],
+    },
 ]
 
 

@@ -165,6 +165,7 @@ class Platform(Enum):
     QQBOT = "qqbot"
     YUANBAO = "yuanbao"
     RELAY = "relay"  # generic relay adapter fronted by the connector (EXPERIMENTAL)
+    SYNOLOGY_CHAT = "synology_chat"
     @classmethod
     def _missing_(cls, value):
         """Accept unknown platform names only for known plugin adapters.
@@ -496,6 +497,10 @@ _PLATFORM_CONNECTED_CHECKERS: dict[Platform, Callable[[PlatformConfig], bool]] =
     # signal in the experimental phase. EXPERIMENTAL — may change.
     Platform.RELAY: lambda cfg: bool(
         cfg.extra.get("relay_url") or cfg.extra.get("url")
+    ),
+    Platform.SYNOLOGY_CHAT: lambda cfg: bool(
+        (cfg.token or os.getenv("SYNOLOGY_CHAT_BOT_TOKEN"))
+        and (cfg.extra.get("api_url") or os.getenv("SYNOLOGY_CHAT_API_URL"))
     ),
 }
 
@@ -1186,6 +1191,7 @@ def _validate_gateway_config(config: "GatewayConfig") -> None:
         Platform.MATTERMOST: "MATTERMOST_TOKEN",
         Platform.MATRIX: "MATRIX_ACCESS_TOKEN",
         Platform.WEIXIN: "WEIXIN_TOKEN",
+        Platform.SYNOLOGY_CHAT: "SYNOLOGY_CHAT_BOT_TOKEN",
     }
     for platform, pconfig in config.platforms.items():
         if not pconfig.enabled:
@@ -1883,6 +1889,32 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
         yuanbao_group_allow_from = os.getenv("YUANBAO_GROUP_ALLOW_FROM")
         if yuanbao_group_allow_from:
             extra["group_allow_from"] = yuanbao_group_allow_from
+
+    # Synology Chat
+    synology_token = os.getenv("SYNOLOGY_CHAT_BOT_TOKEN")
+    synology_api_url = os.getenv("SYNOLOGY_CHAT_API_URL")
+    if synology_token and synology_api_url:
+        if Platform.SYNOLOGY_CHAT not in config.platforms:
+            config.platforms[Platform.SYNOLOGY_CHAT] = PlatformConfig()
+        config.platforms[Platform.SYNOLOGY_CHAT].enabled = True
+        config.platforms[Platform.SYNOLOGY_CHAT].token = synology_token
+        extra = config.platforms[Platform.SYNOLOGY_CHAT].extra
+        extra["api_url"] = synology_api_url
+        
+        synology_port = os.getenv("SYNOLOGY_CHAT_WEBHOOK_PORT")
+        if synology_port:
+            extra["webhook_port"] = synology_port
+        synology_host = os.getenv("SYNOLOGY_CHAT_WEBHOOK_HOST")
+        if synology_host:
+            extra["webhook_host"] = synology_host
+            
+        synology_home = os.getenv("SYNOLOGY_CHAT_HOME_CHANNEL")
+        if synology_home:
+            config.platforms[Platform.SYNOLOGY_CHAT].home_channel = HomeChannel(
+                platform=Platform.SYNOLOGY_CHAT,
+                chat_id=synology_home,
+                name=os.getenv("SYNOLOGY_CHAT_HOME_CHANNEL_NAME", "Home"),
+            )
 
     # Session settings
     idle_minutes = os.getenv("SESSION_IDLE_MINUTES")

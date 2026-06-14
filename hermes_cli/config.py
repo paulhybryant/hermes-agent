@@ -3674,6 +3674,34 @@ OPTIONAL_ENV_VARS = {
     },
 
     # ── Messaging platforms ──
+    "SYNOLOGY_CHAT_BOT_TOKEN": {
+        "description": "Synology Chat bot outgoing/verification token",
+        "prompt": "Synology Chat bot token",
+        "url": None,
+        "password": True,
+        "category": "messaging",
+    },
+    "SYNOLOGY_CHAT_API_URL": {
+        "description": "Synology Chat API base URL (e.g. https://your-nas:5001)",
+        "prompt": "Synology Chat API base URL",
+        "url": None,
+        "password": False,
+        "category": "messaging",
+    },
+    "SYNOLOGY_CHAT_ALLOWED_USERS": {
+        "description": "Comma-separated Synology Chat user IDs allowed to use the bot",
+        "prompt": "Allowed Synology Chat user IDs (comma-separated)",
+        "url": None,
+        "password": False,
+        "category": "messaging",
+    },
+    "SYNOLOGY_CHAT_HOME_CHANNEL": {
+        "description": "Synology Chat home channel ID or DM target for notifications (e.g. channel:123 or dm:5)",
+        "prompt": "Synology Chat home channel ID",
+        "url": None,
+        "password": False,
+        "category": "messaging",
+    },
     "TELEGRAM_BOT_TOKEN": {
         "description": "Telegram bot token from @BotFather",
         "prompt": "Telegram bot token",
@@ -7157,9 +7185,11 @@ def show_config():
     
     telegram_token = get_env_value('TELEGRAM_BOT_TOKEN')
     discord_token = get_env_value('DISCORD_BOT_TOKEN')
+    synology_token = get_env_value('SYNOLOGY_CHAT_BOT_TOKEN')
     
     print(f"  Telegram:     {'configured' if telegram_token else color('not configured', Colors.DIM)}")
     print(f"  Discord:      {'configured' if discord_token else color('not configured', Colors.DIM)}")
+    print(f"  Synology Chat: {'configured' if synology_token else color('not configured', Colors.DIM)}")
     
     # Skill config
     try:
@@ -7255,6 +7285,7 @@ def set_config_value(key: str, value: str):
         'TOOL_GATEWAY_USER_TOKEN', 'TAVILY_API_KEY',
         'BROWSERBASE_API_KEY', 'BROWSERBASE_PROJECT_ID', 'BROWSER_USE_API_KEY',
         'FAL_KEY', 'TELEGRAM_BOT_TOKEN', 'DISCORD_BOT_TOKEN',
+        'SYNOLOGY_CHAT_BOT_TOKEN',
         'TERMINAL_SSH_HOST', 'TERMINAL_SSH_USER', 'TERMINAL_SSH_KEY',
         'SUDO_PASSWORD', 'SLACK_BOT_TOKEN', 'SLACK_APP_TOKEN',
         'GITHUB_TOKEN', 'HONCHO_API_KEY',

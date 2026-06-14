@@ -845,6 +845,12 @@ PLATFORM_HINTS = {
         "![alt](/path) for local files; local paths are not served that way. "
         "Use MEDIA:/absolute/path instead."
     ),
+    "synology_chat": (
+        "You are on a text messaging communication platform, Synology Chat. "
+        "Standard markdown is supported. You can send media files natively: "
+        "include MEDIA:/absolute/path/to/file in your response. Images (.png, .jpg, .webp) "
+        "and other files can be sent as attachments."
+    ),
 }
 
 # ---------------------------------------------------------------------------

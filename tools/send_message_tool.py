@@ -981,6 +981,8 @@ async def _send_to_platform(platform, pconfig, chat_id, message, thread_id=None,
             result = await _send_qqbot(pconfig, chat_id, chunk)
         elif platform == Platform.YUANBAO:
             result = await _send_yuanbao(chat_id, chunk)
+        elif platform == Platform.SYNOLOGY_CHAT:
+            result = await _send_synology_chat(pconfig, chat_id, chunk)
         else:
             # Plugin platform: route through the gateway's live adapter if
             # available, otherwise the plugin's standalone_sender_fn.
@@ -1766,6 +1768,56 @@ async def _send_yuanbao(chat_id, message, media_files=None):
         return await send_yuanbao_direct(adapter, chat_id, message, media_files=media_files)
     except Exception as e:
         return _error(f"Yuanbao send failed: {e}")
+
+
+async def _send_synology_chat(pconfig, chat_id, message):
+    """Send via Synology Chat Bot API (one-shot, no persistent connection needed)."""
+    try:
+        import httpx
+    except ImportError:
+        return {"error": "httpx not installed"}
+
+    token = pconfig.token or os.getenv("SYNOLOGY_CHAT_BOT_TOKEN", "")
+    api_url = pconfig.extra.get("api_url") or os.getenv("SYNOLOGY_CHAT_API_URL", "")
+    if not token or not api_url:
+        return {"error": "Synology Chat not configured. Set SYNOLOGY_CHAT_BOT_TOKEN and SYNOLOGY_CHAT_API_URL."}
+
+    api_url = api_url.rstrip("/")
+    url = f"{api_url}/webapi/entry.cgi?api=SYNO.Chat.External&method=chatbot&version=2&token={token}"
+
+    if chat_id.startswith("channel:"):
+        target_channel_id = int(chat_id.split("channel:", 1)[1])
+        target_kwargs = {"channel_id": target_channel_id}
+    elif chat_id.startswith("dm:"):
+        target_user_id = int(chat_id.split("dm:", 1)[1])
+        target_kwargs = {"user_ids": [target_user_id]}
+    else:
+        try:
+            target_channel_id = int(chat_id)
+            target_kwargs = {"channel_id": target_channel_id}
+        except ValueError:
+            return {"error": f"Invalid chat_id: {chat_id}"}
+
+    payload = {
+        "text": message,
+        **target_kwargs
+    }
+
+    import json
+    data = {"payload": json.dumps(payload)}
+
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+            resp = await client.post(url, data=data)
+            resp.raise_for_status()
+            resp_data = resp.json()
+            if not resp_data.get("success"):
+                err_info = resp_data.get("error", {})
+                err_code = err_info.get("code", "unknown")
+                return _error(f"Synology Chat API error code: {err_code}")
+        return {"success": True, "platform": "synology_chat", "chat_id": chat_id}
+    except Exception as e:
+        return _error(f"Synology Chat send failed: {e}")
 
 
 # --- Registry ---
